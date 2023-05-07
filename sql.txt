@@ -1,0 +1,140 @@
+create database realestatetestdb10;
+use realestatetestdb10;
+use realestatetestdb7rentersrenters_addressesrenters_cc_billing_addressrenters_credit_cardsrenters_cc_billing_addressrenters_addresses;
+describe renters_addresses;
+select * from renters_addresses;
+select * from renters;
+select * from renters_credit_cards;
+select * from renters_cc_billing_address;
+create database reales;
+use reales;
+CREATE TABLE renter (
+  id INT NOT NULL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  phone VARCHAR(255) NOT NULL,
+  moveindate DATE NOT NULL,
+  preferedlocation VARCHAR(255) NOT NULL,
+  budget INT NOT NULL
+);
+
+CREATE TABLE renterAddress (
+  id INT NOT NULL PRIMARY KEY,
+  renterId INT NOT NULL,
+  address VARCHAR(255) NOT NULL,
+  city VARCHAR(255) NOT NULL,
+  state VARCHAR(255) NOT NULL,
+  zipCode VARCHAR(255) NOT NULL,
+  FOREIGN KEY (renterId) REFERENCES renter(id)
+);
+
+CREATE TABLE renterCreditCards (
+  id INT NOT NULL PRIMARY KEY,
+  renterId INT NOT NULL,
+  cardNumber VARCHAR(255) NOT NULL,
+  cardHolderName VARCHAR(255) NOT NULL,
+  expirationDate DATE NOT NULL,
+  cvv VARCHAR(255) NOT NULL,
+  FOREIGN KEY (renterId) REFERENCES renter(id)
+);
+
+CREATE TABLE RenterCreditCardBillingAddress (
+  id INT NOT NULL PRIMARY KEY,
+  renterCreditCardId INT NOT NULL,
+  billingAddress VARCHAR(255) NOT NULL,
+  billingCity VARCHAR(255) NOT NULL,
+  billingState VARCHAR(255) NOT NULL,
+  billingZipCode VARCHAR(255) NOT NULL,
+  FOREIGN KEY (renterCreditCardId) REFERENCES renterCreditCards(id)
+);
+CREATE TABLE agents (
+  id INT NOT NULL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  phone VARCHAR(255) NOT NULL,
+  jobTitle VARCHAR(255) NOT NULL,
+  agency VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE agentAddresses (
+  id INT NOT NULL PRIMARY KEY,
+  agentId INT NOT NULL,
+  address VARCHAR(255) NOT NULL,
+  city VARCHAR(255) NOT NULL,
+  state VARCHAR(255) NOT NULL,
+  zipCode VARCHAR(255) NOT NULL,
+  FOREIGN KEY (agentId) REFERENCES agents(id)
+);
+
+CREATE TABLE property (
+  id INT NOT NULL PRIMARY KEY,
+  availability DATE NOT NULL,
+  description VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  price DECIMAL(10,2) NOT NULL,
+  type VARCHAR(255) NOT NULL,
+  CHECK(type = 'house' or type='apt' or type='cb')
+);
+
+CREATE TABLE Booking (
+  id INT NOT NULL PRIMARY KEY,
+  propertyId INT NOT NULL,
+  renterId INT NOT NULL,
+  renterCreditCardId INT NOT NULL,
+  FOREIGN KEY (propertyId) REFERENCES property(id),
+  FOREIGN KEY (renterId) REFERENCES renter(id),
+  FOREIGN KEY (renterCreditCardId) REFERENCES renterCreditCards(id)
+);
+
+CREATE TABLE neighborhood (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    city VARCHAR(255) NOT NULL,
+    crime_rate FLOAT NOT NULL,
+    nearby_schools TEXT NOT NULL
+);
+
+CREATE TABLE neighborhooinfo(
+id INT AUTO_INCREMENT PRIMARY KEY,
+propertyId INT NOT NULL,
+additional_info VARCHAR(255),
+FOREIGN KEY (propertyId) REFERENCES property(id)
+);
+
+CREATE TABLE rewards(
+id INT AUTO_INCREMENT PRIMARY KEY,
+reward INT not null
+);
+
+INSERT INTO neighborhood (city, crime_rate, nearby_schools)
+VALUES 
+    ('Los Angeles', 8.2, 'Lincoln Middle School, Roosevelt Elementary School'),
+    ('New York City', 5.7, 'PS 234, Stuyvesant High School'),
+    ('San Francisco', 3.9, 'Alamo Elementary School, Francisco Middle School'),
+    ('Chicago', 6.5, 'Walter Payton College Prep, Whitney M. Young Magnet High School'),
+    ('Miami', 7.8, 'Coral Gables Preparatory Academy, Miami Senior High School'),
+    ('Seattle', 4.3, 'Garfield High School, Lowell Elementary School'),
+    ('Denver', 5.2, 'East High School, Bromwell Elementary School'),
+    ('Portland', 3.6, 'Lincoln High School, Glencoe Elementary School'),
+    ('Boston', 4.9, 'Boston Latin School, John Winthrop Elementary School'),
+    ('Austin', 4.1, 'Austin High School, Kealing Middle School');
+
+
+
+insert into renter values(1,"Abhishek Bonageri","a@a.com","2342687","2022-09-09","Chiacgo",200);
+use reales;
+select * from renter;
+select * from agents;
+select * from property;
+select * from renterAddress;
+select * from renterCreditCards;
+select * from renterCreditCardBillingAddress;
+select * from renterAddress;
+select * from booking; 
+select * from neighborhood;
+select * from neighborhooinfo;
+select * from rewards;
+ALTER TABLE renter MODIFY COLUMN moveindate VARCHAR(10);
+ALTER TABLE property MODIFY COLUMN availability VARCHAR(10);
+ALTER TABLE renterCreditCards MODIFY COLUMN expirationDate VARCHAR(10);
+
+
