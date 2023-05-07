@@ -247,7 +247,7 @@ public class RealEstate {
         }
         else if(opt ==3)
         {
-            String emailCheck;
+            String emailCheck ,addInfo;
             System.out.println("Enter Email");
             emailCheck = sc.next();
             String query = "SELECT CASE WHEN EXISTS (SELECT 1 FROM agents WHERE email = ?) THEN 1 ELSE 0 END AS email_exists";
@@ -270,8 +270,10 @@ public class RealEstate {
                     System.out.println("name:"); name=sc.next();
                     System.out.println("Price:"); price=sc.nextInt();
                     System.out.println("Type:"); type=sc.next();
+                    System.out.println("Additional Info");addInfo = sc.next();
 
                     String sql = "INSERT INTO property (id,availability, description,name , Price , Type) VALUES (?, ?, ?, ?, ?, ?)";
+
                     pstmt = conn.prepareStatement(sql);
                     pstmt.setInt(1, id);
                     pstmt.setString(2, availability);
@@ -284,6 +286,16 @@ public class RealEstate {
                     System.out.println(rowsInserted + " rows inserted.");
                     pstmt.close();
 
+
+                    sql = "INSERT INTO neighborhooinfo (propertyId, additional_info) VALUES (?, ?)";
+                    pstmt = conn.prepareStatement(sql);
+                    pstmt.setInt(1, id);
+                    pstmt.setString(2, addInfo);
+
+
+                    rowsInserted = pstmt.executeUpdate();
+                    System.out.println(rowsInserted + " rows inserted.");
+                    pstmt.close();
                 }
             }
         } else if (opt==4) {
@@ -343,25 +355,38 @@ public class RealEstate {
             int rowsInserted = pstmt.executeUpdate();
             System.out.println(rowsInserted + " rows inserted.");
             pstmt.close();
-//            try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydatabase", "username", "password");
-//                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
-//
-//                // Set the renter ID parameter on the prepared statement
-//                pstmt.setInt(1, renterId);
-//
-//                // Execute the prepared statement to fetch the credit cards associated with the renter ID
-//                ResultSet rs = pstmt.executeQuery();
-//
-//                // Display the credit cards to the user
-//                System.out.println("Available credit cards:");
-//                while (rs.next()) {
-//                    int creditCardId = rs.getInt("id");
-//                    String cardNumber = rs.getString("cardNumber");
-//                    System.out.println("Credit card ID: " + creditCardId + ", Card number: " + cardNumber);
-//                }
-//            } catch (SQLException e) {
-//                e.printStackTrace();
-//            }
+
+            // Assume that you have a JDBC connection object named "connection"
+
+// Prepare the SQL query with placeholders for the renter ID
+            String sql1 = "UPDATE rewards " +
+                    "SET reward = reward + p.price " +
+                    "FROM Booking b " +
+                    "JOIN property p ON b.propertyId = p.id " +
+                    "WHERE rewards.id = ? " +
+                    "AND b.renterId = ?";
+
+// Create a prepared statement with the SQL query
+            try (PreparedStatement statement = conn.prepareStatement(sql1)) {
+                // Set the renter ID as a parameter for the first placeholder
+                statement.setInt(1, renterId);
+                // Set the renter ID as a parameter for the second placeholder
+                statement.setInt(2, renterId);
+
+                // Execute the prepared statement
+                int rowsAffected = statement.executeUpdate();
+
+                // Handle the results
+                if (rowsAffected > 0) {
+                    System.out.println("Rewards updated for renter ID " + renterId);
+                } else {
+                    System.out.println("Renter ID " + renterId + " not found in rewards or bookings table");
+                }
+            } catch (SQLException e) {
+                // Handle any errors that occur
+                e.printStackTrace();
+            }
+
 
 
         }
@@ -397,10 +422,86 @@ public class RealEstate {
         }
     }
 
+    public static void update() throws SQLException {
+        int in,id;
+        Scanner sc = new Scanner(System.in);
+        System.out.println("\n1.Update User\n2.Update Property.");
+        in = sc.nextInt();
+
+        if(in== 1){
+            //code for update User
+        } else if (in==2) {
+            System.out.println("You should be an agent to do this.");
+            System.out.println("Email check..!");
+
+//            Scanner /**/sc = new Scanner(System.in);
+            String emailCheck;
+            System.out.println("Enter Email (You should be an Agent to do it)");
+            emailCheck = sc.next();
+            String query = "SELECT CASE WHEN EXISTS (SELECT 1 FROM agents WHERE email = ?) THEN 1 ELSE 0 END AS email_exists";
+            int emailExists = 0;
+            PreparedStatement pstmt = conn.prepareStatement(query);
+            pstmt.setString(1, emailCheck);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                emailExists = rs.getInt("email_exists");
+                if(emailExists ==0)
+                {
+                    System.out.println("You are not an agent , you can update property Details.");
+                    return;
+                }}
+
+            //Property existancy check
+            System.out.println("To update a property , check if its there !");
+            System.out.println("Property check");
+            System.out.print("Property ID:");id=sc.nextInt();
+            query = "SELECT CASE WHEN EXISTS (SELECT 1 FROM property WHERE id = ?) THEN 1 ELSE 0 END AS ID_exists";
+            int idExists = 0;
+            pstmt = conn.prepareStatement(query);
+            pstmt.setInt(1, id);
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
+                idExists = rs.getInt("ID_exists");
+                if(idExists ==0)
+                {
+                    System.out.println("You can not update a property thats not there");
+                    return;
+                }}
+            System.out.println("Property exists...enter new details of the property(you can not change the ID)");
+            String availability , description , name , type;
+            int price;
+            System.out.println("Enter new values in this order(Availability , Description , name , price and type)");
+            availability = sc.next();
+            description = sc.next();
+            name=sc.next();
+            price=sc.nextInt();
+            type=sc.next();
+
+            String sql = "update property  set availability=? , description=? , name=? , price=? , type=? where id =?";
+
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, availability);
+            pstmt.setString(2, description);
+            pstmt.setString(3, name);
+            pstmt.setInt(4, price);
+            pstmt.setString(5, type);
+            pstmt.setInt(6, id);
+
+            int rowsInserted = pstmt.executeUpdate();
+            System.out.println(rowsInserted + " rows updated.");
+            pstmt.close();
+        }
+        else{
+
+            System.out.println("Wrong choice");
+            System.exit(0);
+        }
+
+    }
+
     public static void delete() throws SQLException {
         Scanner scanner = new Scanner(System.in);
-        int in , id,ccbaddId ,rccId ,raddId;
-        String email;
+        int in , id;
         System.out.println("\n1.Delete Renter\n2.Delete Agent(Only Agent can do)\n3.Delete Property(Only Agent can do)\n4.Delete Booking(Only Renters can do)\n");
         in = scanner.nextInt();
 
@@ -489,13 +590,21 @@ public class RealEstate {
                 {
                     System.out.println("Enter Property id");
                     id = scanner.nextInt();
-
-//                    String sql = "INSERT INTO property (id,availability, description,name , Price , Type) VALUES (?, ?, ?, ?, ?, ?)";
-                    String sql = "delete from property where id=?";
+                    //delete from neighborhood additional info first
+                    String sql = "delete from neighborhooinfo where propertyId=?";
                     pstmt = conn.prepareStatement(sql);
                     pstmt.setInt(1, id);
 
                     int rowsInserted = pstmt.executeUpdate();
+                    System.out.println(rowsInserted + " rows Deleted.");
+                    pstmt.close();
+
+//                    String sql = "INSERT INTO property (id,availability, description,name , Price , Type) VALUES (?, ?, ?, ?, ?, ?)";
+                    sql = "delete from property where id=?";
+                    pstmt = conn.prepareStatement(sql);
+                    pstmt.setInt(1, id);
+
+                    rowsInserted = pstmt.executeUpdate();
                     System.out.println(rowsInserted + " rows Deleted.");
                     pstmt.close();
 
@@ -554,7 +663,7 @@ public class RealEstate {
 
         do
         {
-            System.out.println("1.Insert\n2.Search\n3.Update\n4.Delete\n0.Exit");
+            System.out.println("1.Insert\n2.Search\n3.Update\n4.Delete\n5.Neighborhood Details\n6.Reward Program\n0.Exit");
             option=sc.nextInt();
             switch (option)
             {
@@ -566,11 +675,15 @@ public class RealEstate {
                     search();
                     break;
                 case 3:System.out.println("Update");
+                update();
                     break;
                 case 4:delete();
                     System.out.println("Delete");
-
                     break;
+                case 5: neighborhood();
+                break;
+                case 6: rewards();
+                break;
                 case 0: System.exit(0);
                 default:
                     System.out.println("Wrong option");
@@ -579,5 +692,83 @@ public class RealEstate {
         }while(option != 0);
 
 
+    }
+
+    private static void rewards() {
+        System.out.println("1.Register for rewards program\n2.view Rewards\n3.Exit");
+        Scanner sc = new Scanner(System.in);
+        int in  , renterId;
+        in = sc.nextInt();
+        if(in ==1)
+        {
+            System.out.print("Enter  Renter ID:"); renterId = sc.nextInt();
+            // Assume that you have a JDBC connection object named "connection"
+
+// Prepare the SQL query with placeholders for the renter ID
+            String sql = "INSERT INTO rewards (id, reward) " +
+                    "SELECT id, 0 " +
+                    "FROM renter " +
+                    "WHERE id = ? " +
+                    "AND NOT EXISTS ( " +
+                    "  SELECT 1 " +
+                    "  FROM rewards " +
+                    "  WHERE id = ? " +
+                    ")";
+
+// Create a prepared statement with the SQL query
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                // Set the renter ID as a parameter for the first placeholder
+                statement.setInt(1, renterId);
+                // Set the renter ID as a parameter for the second placeholder
+                statement.setInt(2, renterId);
+
+                // Execute the prepared statement
+                int rowsAffected = statement.executeUpdate();
+
+                // Handle the results
+                if (rowsAffected > 0) {
+                    System.out.println("Renter inserted into rewards table with default reward of 0");
+                } else {
+                    System.out.println("Renter already exists in rewards table");
+                }
+            } catch (SQLException e) {
+                // Handle any errors that occur
+                e.printStackTrace();
+            }
+
+        } else if (in ==2) {
+
+        } else if (in==3) {
+            return;
+        }
+        else {
+            System.out.println("Wrong Option\n");
+            System.exit(0);
+        }
+    }
+
+    private static void neighborhood() throws SQLException {
+        String sql = "SELECT * FROM neighborhood";
+        PreparedStatement stmt = conn.prepareStatement(sql);
+
+        // Execute the query
+        ResultSet rs = stmt.executeQuery();
+
+        // Print the results
+        while (rs.next()) {
+            int id = rs.getInt("id");
+            String city = rs.getString("city");
+            double crimeRate = rs.getDouble("crime_rate");
+            String schools = rs.getString("nearby_schools");
+
+            System.out.println("Neighborhood ID: " + id);
+            System.out.println("City: " + city);
+            System.out.println("Crime Rate: " + crimeRate);
+            System.out.println("Nearby Schools: " + schools);
+            System.out.println();
+        }
+
+        // Close the connection
+        conn.close();
     }
 }
